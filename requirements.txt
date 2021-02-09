@@ -1,0 +1,5 @@
+pykafka==2.8.0
+pytest==6.2.2
+requests==2.22.0
+pytest-cov==2.11.1
+psycopg2-binary==2.8.6
