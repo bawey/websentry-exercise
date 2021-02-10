@@ -2,27 +2,13 @@ name: Python package
 
 on: [push]
 
-jobs:
-  # debug:
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #   - name: Print certs
-  #     env:
-  #       CA_PEM: ${{ secrets.CA_PEM }}
-  #       SERVICE_CERT: ${{ secrets.SERVICE_CERT }}
-  #       SERVICE_KEY: ${{ secrets.SERVICE_KEY }}
-  #     run: |
-  #       echo $CA_PEM
-  #       echo $SERVICE_CERT
-  #       echo $SERVICE_KEY
-  
+jobs:  
   build:
   
     runs-on: ubuntu-latest
     strategy:
       matrix:
         python-version: [3.8]
-
     steps:
     - uses: actions/checkout@v2
     - name: Setup Python # Set Python version

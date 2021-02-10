@@ -2,12 +2,22 @@
 
 The project is a simple implementation of a website availability monitor (the producer) relaying its reports through a Kafka event bus where the reports are picked up by the consumer and persisted in a postgres database.
 
+## Architecture overview
+
+The [`producer`](./websentry/producer/__init__.py) package introduces a [`Sentry`](./websentry/producer/sentries.py) class tasked with checking the websites and producing instances of [`SiteReport`](./websentry/commons/sitereport.py). The latter are passed to a [`KafkaDispatcher`](./websentry/producer/dispatchers.py) instance that prepares the messages and sends them to the Kafka server.  
+  
+On the [receiving side](./websentry/consumer/__init__.py), the [`Consumer`](./websentry/consumer/consumer.py) fetches the messages that are subsequently persisted by a [`DBArchiver`](./websentry/consumer/archivers.py).  
+
+In order to reduce the coupling between the classes, they are wired together by the relevant `main` methods of [`producer`](./websentry/producer/__init__.py) and 
+[`consumer`](./websentry/consumer/__init__.py) packages respectively.
+
 ## Launching
-```python
+Assuming that all the necessary [environment variables](#configuration-through-environment-variables) are set, the producer can be launched like so:
+```bash
 python -m websentry.producer
 ```
-or 
-```python
+and the consumer like so:
+```bash
 python -m websentry.consumer
 ```
 ### Configuration through environment variables
@@ -35,19 +45,21 @@ export WEBSENTRY_DATABASE_PASSWORD=docker
 ```
 
 ## DB Setup
-The `DBArchiver` class attempts to assume that responsibility by undertaking the necessary effort to recover from the `relation missing` DB error.
+The [`DBArchiver`](./websentry/consumer/archivers.py) class attempts to assume that responsibility by undertaking the necessary effort to recover from the `relation missing` DB error.
 While the correctness of such approach is debatable (DB permissions), it reduces the fuss required to get things running.
 Elsewhere (ie in the tests) the necessary procedures are in place as test fixtures.
 
 ## Testing
-### Launch quick tests
+### Quick tests
+These tests don't need any of the backend services to execute.
 ```bash
 pytest test/fast
 ```
-### Launch full tests (reqires working connection to services)
-Running those requires configuring the necessary services (Kafka, Postgres) - similarly to how it's done in CI.
+### Full tests 
+In contrast to the quick tests, these require the Kafka and Postgres servers to be configured.  
+The neecssary details can be worked out from the [`.github/workflows/ci.yaml`](./.github/workflows/ci.yaml) file and they involve a combination of credentials and certificate files, all fed into the applications through the corresponding [environment variables](#configuration-through-environment-variables).
 ```bash
 pytest test
 ```
-### CI
-Please consult the `.github/workflows` file for more details.
+### CI (Github actions)
+Please consult the [`.github/workflows/ci.yaml`](./.github/workflows/ci.yaml) file for details.
